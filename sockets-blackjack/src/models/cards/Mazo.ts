@@ -1,73 +1,72 @@
-import Carta, {Pinta, Valor} from "@/models/cards/Carta";
-
+import Carta, { CardSuite, CardValue } from "@/models/cards/Carta";
 
 export class Mazo {
-    public cartas: Carta[] = [
-        new Carta(Pinta.PICA, Valor.AS),
-        new Carta(Pinta.PICA, Valor.DOS),
-        new Carta(Pinta.PICA, Valor.TRES),
-        new Carta(Pinta.PICA, Valor.CUATRO),
-        new Carta(Pinta.PICA, Valor.CINCO),
-        new Carta(Pinta.PICA, Valor.SEIS),
-        new Carta(Pinta.PICA, Valor.SIETE),
-        new Carta(Pinta.PICA, Valor.OCHO),
-        new Carta(Pinta.PICA, Valor.NUEVE),
-        new Carta(Pinta.PICA, Valor.DIEZ),
-        new Carta(Pinta.PICA, Valor.JOTA),
-        new Carta(Pinta.PICA, Valor.QUINA),
-        new Carta(Pinta.PICA, Valor.KAISER),
+  public cartas: Carta[] = [
+    new Carta(CardSuite.PICA, CardValue.AS),
+    new Carta(CardSuite.PICA, CardValue.DOS),
+    new Carta(CardSuite.PICA, CardValue.TRES),
+    new Carta(CardSuite.PICA, CardValue.CUATRO),
+    new Carta(CardSuite.PICA, CardValue.CINCO),
+    new Carta(CardSuite.PICA, CardValue.SEIS),
+    new Carta(CardSuite.PICA, CardValue.SIETE),
+    new Carta(CardSuite.PICA, CardValue.OCHO),
+    new Carta(CardSuite.PICA, CardValue.NUEVE),
+    new Carta(CardSuite.PICA, CardValue.DIEZ),
+    new Carta(CardSuite.PICA, CardValue.JOTA),
+    new Carta(CardSuite.PICA, CardValue.QUINA),
+    new Carta(CardSuite.PICA, CardValue.KAISER),
 
-        new Carta(Pinta.CORAZON, Valor.AS),
-        new Carta(Pinta.CORAZON, Valor.DOS),
-        new Carta(Pinta.CORAZON, Valor.TRES),
-        new Carta(Pinta.CORAZON, Valor.CUATRO),
-        new Carta(Pinta.CORAZON, Valor.CINCO),
-        new Carta(Pinta.CORAZON, Valor.SEIS),
-        new Carta(Pinta.CORAZON, Valor.SIETE),
-        new Carta(Pinta.CORAZON, Valor.OCHO),
-        new Carta(Pinta.CORAZON, Valor.NUEVE),
-        new Carta(Pinta.CORAZON, Valor.DIEZ),
-        new Carta(Pinta.CORAZON, Valor.JOTA),
-        new Carta(Pinta.CORAZON, Valor.QUINA),
-        new Carta(Pinta.CORAZON, Valor.KAISER),
+    new Carta(CardSuite.CORAZON, CardValue.AS),
+    new Carta(CardSuite.CORAZON, CardValue.DOS),
+    new Carta(CardSuite.CORAZON, CardValue.TRES),
+    new Carta(CardSuite.CORAZON, CardValue.CUATRO),
+    new Carta(CardSuite.CORAZON, CardValue.CINCO),
+    new Carta(CardSuite.CORAZON, CardValue.SEIS),
+    new Carta(CardSuite.CORAZON, CardValue.SIETE),
+    new Carta(CardSuite.CORAZON, CardValue.OCHO),
+    new Carta(CardSuite.CORAZON, CardValue.NUEVE),
+    new Carta(CardSuite.CORAZON, CardValue.DIEZ),
+    new Carta(CardSuite.CORAZON, CardValue.JOTA),
+    new Carta(CardSuite.CORAZON, CardValue.QUINA),
+    new Carta(CardSuite.CORAZON, CardValue.KAISER),
 
-        new Carta(Pinta.TREBOL, Valor.AS),
-        new Carta(Pinta.TREBOL, Valor.DOS),
-        new Carta(Pinta.TREBOL, Valor.TRES),
-        new Carta(Pinta.TREBOL, Valor.CUATRO),
-        new Carta(Pinta.TREBOL, Valor.CINCO),
-        new Carta(Pinta.TREBOL, Valor.SEIS),
-        new Carta(Pinta.TREBOL, Valor.SIETE),
-        new Carta(Pinta.TREBOL, Valor.OCHO),
-        new Carta(Pinta.TREBOL, Valor.NUEVE),
-        new Carta(Pinta.TREBOL, Valor.DIEZ),
-        new Carta(Pinta.TREBOL, Valor.JOTA),
-        new Carta(Pinta.TREBOL, Valor.QUINA),
-        new Carta(Pinta.TREBOL, Valor.KAISER),
+    new Carta(CardSuite.TREBOL, CardValue.AS),
+    new Carta(CardSuite.TREBOL, CardValue.DOS),
+    new Carta(CardSuite.TREBOL, CardValue.TRES),
+    new Carta(CardSuite.TREBOL, CardValue.CUATRO),
+    new Carta(CardSuite.TREBOL, CardValue.CINCO),
+    new Carta(CardSuite.TREBOL, CardValue.SEIS),
+    new Carta(CardSuite.TREBOL, CardValue.SIETE),
+    new Carta(CardSuite.TREBOL, CardValue.OCHO),
+    new Carta(CardSuite.TREBOL, CardValue.NUEVE),
+    new Carta(CardSuite.TREBOL, CardValue.DIEZ),
+    new Carta(CardSuite.TREBOL, CardValue.JOTA),
+    new Carta(CardSuite.TREBOL, CardValue.QUINA),
+    new Carta(CardSuite.TREBOL, CardValue.KAISER),
 
-        new Carta(Pinta.DIAMANTE, Valor.AS),
-        new Carta(Pinta.DIAMANTE, Valor.DOS),
-        new Carta(Pinta.DIAMANTE, Valor.TRES),
-        new Carta(Pinta.DIAMANTE, Valor.CUATRO),
-        new Carta(Pinta.DIAMANTE, Valor.CINCO),
-        new Carta(Pinta.DIAMANTE, Valor.SEIS),
-        new Carta(Pinta.DIAMANTE, Valor.SIETE),
-        new Carta(Pinta.DIAMANTE, Valor.OCHO),
-        new Carta(Pinta.DIAMANTE, Valor.NUEVE),
-        new Carta(Pinta.DIAMANTE, Valor.DIEZ),
-        new Carta(Pinta.DIAMANTE, Valor.JOTA),
-        new Carta(Pinta.DIAMANTE, Valor.QUINA),
-        new Carta(Pinta.DIAMANTE, Valor.KAISER)
-    ];
+    new Carta(CardSuite.DIAMANTE, CardValue.AS),
+    new Carta(CardSuite.DIAMANTE, CardValue.DOS),
+    new Carta(CardSuite.DIAMANTE, CardValue.TRES),
+    new Carta(CardSuite.DIAMANTE, CardValue.CUATRO),
+    new Carta(CardSuite.DIAMANTE, CardValue.CINCO),
+    new Carta(CardSuite.DIAMANTE, CardValue.SEIS),
+    new Carta(CardSuite.DIAMANTE, CardValue.SIETE),
+    new Carta(CardSuite.DIAMANTE, CardValue.OCHO),
+    new Carta(CardSuite.DIAMANTE, CardValue.NUEVE),
+    new Carta(CardSuite.DIAMANTE, CardValue.DIEZ),
+    new Carta(CardSuite.DIAMANTE, CardValue.JOTA),
+    new Carta(CardSuite.DIAMANTE, CardValue.QUINA),
+    new Carta(CardSuite.DIAMANTE, CardValue.KAISER),
+  ];
 
-    public revolver(): void {
-        for (let i = this.cartas.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [this.cartas[i], this.cartas[j]] = [this.cartas[j], this.cartas[i]];
-        }
+  public revolver(): void {
+    for (let i = this.cartas.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [this.cartas[i], this.cartas[j]] = [this.cartas[j], this.cartas[i]];
     }
+  }
 
-    public sacarCarta(): Carta {
-        return <Carta>this.cartas.pop();
-    }
+  public sacarCarta(): Carta {
+    return <Carta>this.cartas.pop();
+  }
 }
