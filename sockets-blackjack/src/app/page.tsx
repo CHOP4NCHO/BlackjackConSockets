@@ -6,6 +6,7 @@ import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { EstadoJuego } from "@/models/game/Juego";
 import { Jugador } from "@/models/game/Jugador";
 import { io, Socket } from "socket.io-client";
+//import { socket } from "@/socket";
 
 // <Card number=CardNumbers.ACE suite=CardSuite.SPADES heigt="200"></Card>
 interface ICard {
@@ -72,26 +73,28 @@ export default function Game() {
   const [gameState, setGameState] = useState({} as EstadoJuego);
   const [jugador, setJugador] = useState({ nombre: "", mano: [] } as Jugador);
   const [serverIp, setServerIp] = useState("");
+  const [askTurn, setAskTurn] = useState<boolean>(false);
+  const [socket, setSocket] = useState<Socket>(io());
 
-  const socket: MutableRefObject<Socket> = useRef(io({ reconnection: false }));
-
-  
-
+  //const socket: MutableRefObject<Socket> = useRef(io({ reconnection: false }));
 
   function tryConnect() {
-    socket.current = io(serverIp, { reconnection: false });
-
-    if (!socket.current.connected) {
-      console.log("not connected");
+    setSocket(io("ws://localhost:4567"));
+    if (socket.connected) {
+      console.log("already connected");
       return;
     }
+  }
 
-    console.log("connected!");
+  function pedir() {
+    socket.emit("pedir");
   }
 
   useEffect(() => {
-    console.log(socket.current.connected);
-  }, [socket]);
+    socket.on("turno", () => {
+      setAskTurn(true);
+    });
+  }, []);
 
   let players = [1, 2, 3];
 
@@ -102,6 +105,11 @@ export default function Game() {
         <div>
           <input type="text" onChange={(e) => setServerIp(e.target.value)} />
           <button onClick={tryConnect}>caca</button>
+          {socket.connected ? <p>Verdadero</p> : <p>Falso</p>}
+        </div>
+
+        <div>
+          <button onClick={pedir}>Pedir</button>
         </div>
         <Players players={players}></Players>
       </Board>
