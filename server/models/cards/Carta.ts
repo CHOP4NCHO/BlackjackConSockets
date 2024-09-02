@@ -1,37 +1,34 @@
 export enum Pinta {
-    PICA ,
-    CORAZON,
-    TREBOL,
-    DIAMANTE
+  PICA,
+  CORAZON,
+  TREBOL,
+  DIAMANTE,
 }
 export enum Valor {
-    AS ,
-    DOS,
-    TRES,
-    CUATRO,
-    CINCO,
-    SEIS,
-    SIETE,
-    OCHO,
-    NUEVE,
-    DIEZ,
-    JOTA,
-    QUINA,
-    KAISER
+  AS = 11,
+  DOS = 2,
+  TRES = 3,
+  CUATRO = 4,
+  CINCO = 5,
+  SEIS = 6,
+  SIETE = 7,
+  OCHO = 8,
+  NUEVE = 9,
+  DIEZ = 10,
+  JOTA = 10,
+  QUINA = 10,
+  KAISER = 10,
 }
 
-
-
 export default class Carta {
-    public pinta: Pinta
-    public valor: Valor
-    public visible: boolean = false;
+  public pinta: Pinta;
+  public valor: Valor;
+  public visible: boolean = false;
 
+  constructor(pinta: Pinta, valor: Valor) {
+    this.pinta = pinta;
+    this.valor = valor;
+  }
 
-    constructor(pinta: Pinta, valor: Valor) {
-        this.pinta = pinta;
-        this.valor = valor;
-    }
-
-    public
+  public;
 }

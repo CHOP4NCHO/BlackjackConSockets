@@ -74,27 +74,50 @@ export default function Game() {
   const [jugador, setJugador] = useState({ nombre: "", mano: [] } as Jugador);
   const [serverIp, setServerIp] = useState("");
   const [askTurn, setAskTurn] = useState<boolean>(false);
-  const [socket, setSocket] = useState<Socket>(io());
+  const [socket, setSocket] = useState<Socket>(io({ reconnection: false }));
 
   //const socket: MutableRefObject<Socket> = useRef(io({ reconnection: false }));
 
   function tryConnect() {
-    setSocket(io("ws://localhost:4567"));
     if (socket.connected) {
       console.log("already connected");
       return;
     }
+    setSocket(io("ws://localhost:4567", { reconnection: false }));
+    console.log(socket.id);
   }
 
   function pedir() {
-    socket.emit("pedir");
+    console.log(socket.id);
+    console.log(gameState.nombreJugadorActivo);
+    if (gameState.nombreJugadorActivo == socket.id) {
+      console.log("Tuturno");
+      socket.emit("pedir");
+      return;
+    }
+    console.log("no le toca");
+  }
+
+  function bajarse() {
+    socket.emit("bajarse");
+    console.log("Me baje ", socket.id);
   }
 
   useEffect(() => {
     socket.on("turno", () => {
       setAskTurn(true);
     });
-  }, []);
+
+    socket.on("gamestate", (data: EstadoJuego) => {
+      console.log(data);
+      setGameState(data);
+    });
+  }, [socket]);
+
+  function confirmar() {
+    console.log(socket.id);
+    socket.emit("confirmar");
+  }
 
   let players = [1, 2, 3];
 
@@ -104,12 +127,16 @@ export default function Game() {
         <Dealer></Dealer>
         <div>
           <input type="text" onChange={(e) => setServerIp(e.target.value)} />
-          <button onClick={tryConnect}>caca</button>
+          <button onClick={tryConnect}>Conectarse</button>
           {socket.connected ? <p>Verdadero</p> : <p>Falso</p>}
         </div>
 
         <div>
           <button onClick={pedir}>Pedir</button>
+
+          <button onClick={confirmar}>Confirmar</button>
+
+          <button onClick={bajarse}>Bajarse</button>
         </div>
         <Players players={players}></Players>
       </Board>
