@@ -45,7 +45,7 @@ function Dealer(dealer: IDealer) {
         <Card height={200}></Card>
         <Card height={200}></Card>
       </div>
-      <div>
+      <div className="bg-black h-fit flex justify p-2">
         {dealer.manoCroupier?.map((carta) => (
           <p style={{ color: "white" }}>
             {carta.pinta} {carta.valor}
@@ -68,6 +68,7 @@ function Board({ children }) {
 interface IJugador {
   jugador: Jugador;
 }
+
 function CardHolder(player: IJugador) {
   return (
     <div className="flex flex-col justify-center  text-center">
@@ -88,12 +89,13 @@ function CardHolder(player: IJugador) {
     </div>
   );
 }
+
 interface IEstadoJuego {
   estadoJuego: EstadoJuego;
 }
 function Players(gamestate: IEstadoJuego) {
   return (
-    <div className="flex flex-row justify-center items-end h-full w-full gap-14 py-10 min-h-[30vh]">
+    <div className="flex flex-row flex-grow justify-center items-end h-full w-full gap-14 py-10 min-h-[20vh] ">
       {gamestate?.estadoJuego.jugadores?.map((jugador: Jugador) => (
         <CardHolder jugador={jugador} />
       ))}
@@ -101,28 +103,12 @@ function Players(gamestate: IEstadoJuego) {
   );
 }
 
-export default function Game() {
-  const [gameState, setGameState] = useState({} as EstadoJuego);
-  const [jugador, setJugador] = useState({
-    nombre: "",
-    mano: [] as Carta[],
-    puntaje: 0,
-  } as Jugador);
-  const [serverIp, setServerIp] = useState("");
-  const [askTurn, setAskTurn] = useState<boolean>(false);
-  const [socket, setSocket] = useState<Socket>(io({ reconnection: false }));
+interface IPlayButtons {
+  socket: Socket;
+  gameState: EstadoJuego;
+}
 
-  //const socket: MutableRefObject<Socket> = useRef(io({ reconnection: false }));
-
-  function tryConnect() {
-    if (socket.connected) {
-      console.log("already connected");
-      return;
-    }
-    setSocket(io("ws://localhost:4567", { reconnection: false }));
-    console.log(socket.id);
-  }
-
+const PlayButtons: React.FC<IPlayButtons> = ({ socket, gameState }) => {
   function pedir() {
     if (gameState.nombreJugadorActivo == socket.id) {
       console.log("Tuturno");
@@ -131,41 +117,104 @@ export default function Game() {
     }
     console.log("no le toca");
   }
-
   function bajarse() {
     socket.emit("bajarse");
     console.log("Me baje ", socket.id);
   }
-
-  useEffect(() => {
-    socket.on("turno", () => {
-      setAskTurn(true);
-    });
-
-    socket.on("gamestate", (data: EstadoJuego) => {
-      setGameState(data);
-    });
-
-    socket.on("finronda", (data: EstadoJuego) => {
-
-      if (
-        data.jugadoresGanadores?.find((jugador) => {
-          return jugador.nombre == (socket.id);
-        })
-      ) {
-        alert(`GANASTE PAPU, puntaje crupier: ${data?.puntajeGrupier} puntajes ${data?.jugadores.forEach((j)=>{return j.puntaje})}`);
-      } else {
-        alert(`PERDISTE CHAVO PIPIPIPI, puntaje crupier: ${data?.puntajeGrupier}`);
-      }
-    });
-  }, [socket]);
-
   function confirmar() {
     console.log(socket.id);
     socket.emit("confirmar");
   }
 
-  let players = [1];
+  return (
+    <div className="flex flex-row justify-center items-end w-full gap-14 p-5 text-lg">
+      <button
+        className="bg-white border-2 flex-1 border-black py-3 rounded-xl"
+        onClick={confirmar}
+      >
+        Confirmar
+      </button>
+      <button
+        className="bg-white border-2 flex-1 border-black py-3 rounded-xl"
+        onClick={pedir}
+      >
+        Pedir Carta
+      </button>
+      <button
+        className="bg-white border-2 flex-1 border-black py-3 rounded-xl"
+        onClick={bajarse}
+      >
+        Bajarse
+      </button>
+    </div>
+  );
+};
+
+function Connect({ socket, setSocket, serverIp, setServerIp }) {
+  function tryConnect() {
+    if (socket.connected) {
+      console.log("already connected");
+      return;
+    }
+    setSocket(io(serverIp, { reconnection: false }));
+    console.log(socket.id);
+  }
+  return (
+    <div className="flex flex-col gap-2 justify-center align-middle items-center p-3">
+      <div className="flex gap-2">
+        <input
+          type="text"
+          className="rounded-lg border-2 border-black p-2"
+          onChange={(e) => {
+            setServerIp(e.target.value);
+          }}
+        />
+        <button
+          className="bg-white rounded-lg border-2 border-black p-2"
+          onClick={tryConnect}
+        >
+          Conectarse
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default function Game() {
+  const [gameState, setGameState] = useState({} as EstadoJuego);
+  const [serverIp, setServerIp] = useState("");
+  const [socket, setSocket] = useState<Socket>(io({ reconnection: false }));
+
+  useEffect(() => {
+    socket.on("gamestate", (data: EstadoJuego) => {
+      setGameState(data);
+    });
+
+    socket.on("finronda", (data: EstadoJuego) => {
+      setGameState(data);
+      checkearGanadores(data);
+    });
+
+    function checkearGanadores(data: EstadoJuego) {
+      if (
+        data.jugadoresGanadores?.find((jugador) => {
+          return jugador.nombre == socket.id;
+        })
+      ) {
+        alert(
+          `GANASTE PAPU, puntaje crupier: ${
+            data?.puntajeGrupier
+          } puntajes ${data?.jugadores.forEach((j) => {
+            return j.puntaje;
+          })}`
+        );
+      } else {
+        alert(
+          `PERDISTE CHAVO PIPIPIPI, puntaje crupier: ${data?.puntajeGrupier}`
+        );
+      }
+    }
+  }, [socket]);
 
   return (
     <main className="bg-black h-screen w-screen p-5 flex flex-col">
@@ -174,56 +223,14 @@ export default function Game() {
           manoCroupier={gameState.manoGrupier}
           puntajeCroupier={gameState.puntajeGrupier}
         />
-        <div>
-          <button
-            style={{
-              backgroundColor: "white",
-              padding: 12,
-              margin: 10,
-              borderRadius: 10,
-            }}
-            onClick={tryConnect}
-          >
-            Conectarse
-          </button>
-        </div>
+        <Connect
+          socket={socket}
+          setSocket={setSocket}
+          serverIp={serverIp}
+          setServerIp={setServerIp}
+        ></Connect>
         <Players estadoJuego={gameState}></Players>
-
-        <div className="flex flex-row justify-center items-end  w-full gap-14 py-10">
-          <button
-            style={{
-              backgroundColor: "white",
-              padding: 12,
-              margin: 10,
-              borderRadius: 10,
-            }}
-            onClick={confirmar}
-          >
-            Confirmar
-          </button>
-          <button
-            style={{
-              backgroundColor: "white",
-              padding: 12,
-              margin: 10,
-              borderRadius: 10,
-            }}
-            onClick={pedir}
-          >
-            Pedir Carta
-          </button>
-          <button
-            style={{
-              backgroundColor: "white",
-              padding: 12,
-              margin: 10,
-              borderRadius: 10,
-            }}
-            onClick={bajarse}
-          >
-            Bajarse
-          </button>
-        </div>
+        <PlayButtons socket={socket} gameState={gameState}></PlayButtons>
       </Board>
     </main>
   );
