@@ -1,17 +1,22 @@
-import { Server } from "socket.io";
+import {Server, Socket} from "socket.io";
 import { Juego } from "../models/game/Juego";
 import { Jugador } from "../models/game/Jugador";
 import { SocketId } from "socket.io-adapter";
 import { inspect } from "util";
+import {createServer} from "node:http";
 
 
-
-const io = new Server({ cors: { origin: "*" } });
+const http = createServer()
+const io = new Server(http, {  cors: { origin: "*" } });
 const game = new Juego();
 let sockets = []; // id de conexiones
 let confirmed = [];
 let socketActual = 0; // turno de la conexion
 const mapSocketJugadores = new Map<SocketId, string>();
+const port = 4567
+http.listen(port, "192.168.0.12", () => {
+  console.log(`Escuchando en ${port}`)
+})
 
 io.on("connection", (socket) => {
   onConnect();
@@ -124,7 +129,5 @@ io.on("connection", (socket) => {
   }
 });
 
-const port = 4567;
-console.log(`server listening on port ${port}`);
-io.listen(port);
+
 
