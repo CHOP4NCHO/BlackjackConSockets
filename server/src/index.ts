@@ -4,6 +4,8 @@ import { Jugador } from "../models/game/Jugador";
 import { SocketId } from "socket.io-adapter";
 import { inspect } from "util";
 
+
+
 const io = new Server({ cors: { origin: "*" } });
 const game = new Juego();
 let sockets = []; // id de conexiones
@@ -61,7 +63,7 @@ io.on("connection", (socket) => {
       console.log(`puntaje despues de pedir: ${game.getPuntajeJA()}`);
 
       const seAcaboLaRonda = game.turno + 1 == game.jugadores.length;
-
+      io.emit("gamestate", game.obtenerEstadoJuego());
       if (seAcaboLaRonda && !game.puedeSeguirPidiendoJA()) {
         game.terminarRonda();
 
@@ -89,7 +91,7 @@ io.on("connection", (socket) => {
     console.log(`socket ${socket.id} se bajo de la ronda ${game.ronda}`);
 
     const seAcaboLaRonda = game.turno + 1 == game.jugadores.length;
-
+    io.emit("gamestate", game.obtenerEstadoJuego());
     if (seAcaboLaRonda) {
       game.terminarRonda();
       io.emit("finronda", game.obtenerEstadoJuego());
@@ -125,3 +127,4 @@ io.on("connection", (socket) => {
 const port = 4567;
 console.log(`server listening on port ${port}`);
 io.listen(port);
+

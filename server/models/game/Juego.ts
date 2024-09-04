@@ -40,6 +40,7 @@ export class Juego {
       contador += carta.valor.valueOf();
       if (carta.valor == Valor.AS) cartasAs.push(carta);
     });
+    if (contador <= 21) return contador;
     if (cartasAs.length == 0) return contador;
     return contador - 10;
   }
