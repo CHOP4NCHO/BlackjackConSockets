@@ -44,9 +44,8 @@ io.on("connection", (socket) => {
   });
 
   socket.on("pedir", () => {
-    //console.log(socket.id, "El loko pidio");
     if (!isMyTurn()) return;
-
+    let acaboRonda = false;
     if (game.puedeSeguirPidiendoJA()) {
       console.log(`${socket.id} pidio en la ronda ${game.ronda}`);
 
@@ -58,7 +57,11 @@ io.on("connection", (socket) => {
       );
       console.log(`puntaje despues de pedir: ${game.getPuntajeJA()}`);
       if (!game.puedeSeguirPidiendoJA()) {
-        game.avanzarTurno();
+        const acaboRonda = game.avanzarTurno();
+      }
+
+      if (acaboRonda) {
+        io.emit("finronda");
       }
     }
 
@@ -74,11 +77,15 @@ io.on("connection", (socket) => {
       console.log("!!!NO PUEDES HACER ESO SEÑOR SOCKET,", socket.id);
       return;
     }
-
     console.log(`socket ${socket.id} se bajo de la ronda ${game.ronda}`);
-    game.avanzarTurno();
+
+    let acaboRonda = game.avanzarTurno();
+
     io.emit("gamestate", game.obtenerEstadoJuego());
     console.log(game.obtenerEstadoJuego());
+    if (acaboRonda) {
+      io.emit("finronda");
+    }
   });
 
   socket.on("disconnect", () => {

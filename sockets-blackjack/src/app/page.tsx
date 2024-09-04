@@ -33,11 +33,26 @@ const Card: React.FC<ICard> = ({ card = REVERSO_ROJO, height = 100 }) => {
   );
 };
 
-function Dealer() {
+interface IDealer {
+  manoCroupier: Carta[];
+  puntajeCroupier: number;
+}
+
+function Dealer(dealer: IDealer) {
   return (
-    <div className="bg-green-900 h-[30vh] p-2 flex flex-row justify-center  items-center">
-      <Card height={200}></Card>
-      <Card height={200}></Card>
+    <div>
+      <div className="bg-green-900 h-[30vh] p-2 flex flex-row justify-center  items-center">
+        <Card height={200}></Card>
+        <Card height={200}></Card>
+      </div>
+      <div>
+        {dealer.manoCroupier?.map((carta) => (
+          <p style={{ color: "white" }}>
+            {carta.pinta} {carta.valor}
+          </p>
+        ))}
+        <p style={{ color: "white" }}>Puntaje: {dealer.puntajeCroupier}</p>
+      </div>
     </div>
   );
 }
@@ -50,20 +65,37 @@ function Board({ children }) {
   );
 }
 
-function CardHolder({ player }) {
+interface IJugador {
+  jugador: Jugador;
+}
+function CardHolder(player: IJugador) {
   return (
-    <div className="flex flex-col justify-center items-stretch text-center">
-      <div className="border-x-[5px] border-b-[5px] border-dashed border-white h-[250px] aspect-[6/7]"></div>
-      <p className="py-2 font-black bg-green-100 mt-1">Jugador {player}</p>
+    <div className="flex flex-col justify-center  text-center">
+      <div className="border-x-[5px] border-b-[5px] border-dashed border-white h-[250px] aspect-[6/7]">
+        <div>
+          <p style={{ color: "white" }}>Cartas</p>
+          {player.jugador.mano.map((carta) => (
+            <p style={{ color: "white" }}>
+              {carta.pinta} {carta.valor}
+            </p>
+          ))}
+        </div>
+      </div>
+      <p className="py-2 font-black bg-green-100 mt-1">
+        Jugador {player.jugador.nombre}
+      </p>
+      <p style={{ color: "white" }}>Puntaje {player.jugador.puntaje}</p>
     </div>
   );
 }
-
-function Players({ players }) {
+interface IEstadoJuego {
+  estadoJuego: EstadoJuego;
+}
+function Players(gamestate: IEstadoJuego) {
   return (
-    <div className="flex flex-row justify-center items-end h-full w-full gap-14 py-10 min-h-[30vh] ">
-      {players.map((player) => (
-        <CardHolder key={player} player={player}></CardHolder>
+    <div className="flex flex-row justify-center items-end h-full w-full gap-14 py-10 min-h-[30vh]">
+      {gamestate?.estadoJuego.jugadores?.map((jugador: Jugador) => (
+        <CardHolder jugador={jugador} />
       ))}
     </div>
   );
@@ -71,7 +103,11 @@ function Players({ players }) {
 
 export default function Game() {
   const [gameState, setGameState] = useState({} as EstadoJuego);
-  const [jugador, setJugador] = useState({ nombre: "", mano: [] } as Jugador);
+  const [jugador, setJugador] = useState({
+    nombre: "",
+    mano: [] as Carta[],
+    puntaje: 0,
+  } as Jugador);
   const [serverIp, setServerIp] = useState("");
   const [askTurn, setAskTurn] = useState<boolean>(false);
   const [socket, setSocket] = useState<Socket>(io({ reconnection: false }));
@@ -88,8 +124,6 @@ export default function Game() {
   }
 
   function pedir() {
-    console.log(socket.id);
-    console.log(gameState.nombreJugadorActivo);
     if (gameState.nombreJugadorActivo == socket.id) {
       console.log("Tuturno");
       socket.emit("pedir");
@@ -109,8 +143,24 @@ export default function Game() {
     });
 
     socket.on("gamestate", (data: EstadoJuego) => {
-      console.log(data);
       setGameState(data);
+    });
+
+    socket.on("finronda", () => {
+      if (
+        gameState.jugadoresGanadores?.find((jugador) => {
+          jugador.nombre == socket.id;
+        })
+      ) {
+        alert("GANASTE PAPU");
+      } else {
+        alert("PERDISTE PIPIPI");
+      }
+      alert(
+        gameState.jugadoresGanadores?.find((j) => {
+          j.nombre == socket.id;
+        })
+      );
     });
   }, [socket]);
 
@@ -119,26 +169,65 @@ export default function Game() {
     socket.emit("confirmar");
   }
 
-  let players = [1, 2, 3];
+  let players = [1];
 
   return (
     <main className="bg-black h-screen w-screen p-5 flex flex-col">
       <Board>
-        <Dealer></Dealer>
+        <Dealer
+          manoCroupier={gameState.manoGrupier}
+          puntajeCroupier={gameState.puntajeGrupier}
+        />
         <div>
-          <input type="text" onChange={(e) => setServerIp(e.target.value)} />
-          <button onClick={tryConnect}>Conectarse</button>
-          {socket.connected ? <p>Verdadero</p> : <p>Falso</p>}
+          <button
+            style={{
+              backgroundColor: "white",
+              padding: 12,
+              margin: 10,
+              borderRadius: 10,
+            }}
+            onClick={tryConnect}
+          >
+            Conectarse
+          </button>
         </div>
+        <Players estadoJuego={gameState}></Players>
 
-        <div>
-          <button onClick={pedir}>Pedir</button>
-
-          <button onClick={confirmar}>Confirmar</button>
-
-          <button onClick={bajarse}>Bajarse</button>
+        <div className="flex flex-row justify-center items-end  w-full gap-14 py-10">
+          <button
+            style={{
+              backgroundColor: "white",
+              padding: 12,
+              margin: 10,
+              borderRadius: 10,
+            }}
+            onClick={confirmar}
+          >
+            Confirmar
+          </button>
+          <button
+            style={{
+              backgroundColor: "white",
+              padding: 12,
+              margin: 10,
+              borderRadius: 10,
+            }}
+            onClick={pedir}
+          >
+            Pedir Carta
+          </button>
+          <button
+            style={{
+              backgroundColor: "white",
+              padding: 12,
+              margin: 10,
+              borderRadius: 10,
+            }}
+            onClick={bajarse}
+          >
+            Bajarse
+          </button>
         </div>
-        <Players players={players}></Players>
       </Board>
     </main>
   );

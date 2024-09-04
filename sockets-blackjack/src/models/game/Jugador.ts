@@ -1,6 +1,11 @@
-import Carta from "@/models/cards/Carta";
+import Carta from "../cards/Carta";
 
-export interface Jugador {
-  nombre: string;
-  mano: Carta[];
+export class Jugador {
+  nombre: string = "";
+  mano: Carta[] = [];
+  puntaje: number = 0;
+
+  public agregarCarta(carta: Carta) {
+    this.mano.push(carta);
+  }
 }

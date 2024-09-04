@@ -23,12 +23,10 @@ export enum Valor {
 export default class Carta {
   public pinta: Pinta;
   public valor: Valor;
-  public visible: boolean = false;
+  public visible: boolean = true;
 
   constructor(pinta: Pinta, valor: Valor) {
     this.pinta = pinta;
     this.valor = valor;
   }
-
-  public;
 }
