@@ -55,8 +55,15 @@ export class Juego {
   }
 
   public avanzarRonda() {
-    this.ronda++;
     this.turno = 0;
+    this.ronda++;
+    this.jugadores.forEach( (j) =>  {
+      j.puntaje = 0
+      j.mano = []
+    })
+    this.manoGrupier = []
+    this.jugadoresGanadores = [];
+    this.entregarManoInicial();
   }
 
   public terminarRonda() {
@@ -68,24 +75,18 @@ export class Juego {
     this.jugadores.forEach((jugador) => {
       const puntajeJugador = this.calcularPuntaje(jugador.mano);
       if (
-        (puntajeJugador > puntajeGrupier && puntajeJugador <= 21) ||
-        (puntajeGrupier > 21 && puntajeJugador <= 21)
+        ((puntajeJugador > puntajeGrupier && puntajeJugador <= 21) ||
+        (puntajeGrupier > 21 && puntajeJugador <= 21))
       ) {
         this.jugadoresGanadores.push(jugador);
       }
     });
-    this.avanzarRonda();
+
+
   }
 
-  public avanzarTurno(): boolean {
-    if ((this.turno + 1) % this.jugadores.length == 0) {
-      this.terminarRonda();
-      this.turno = 0; //apunta al siguiente jugador
-      return true;
-    } else {
-      this.turno++;
-      return false;
-    }
+  public avanzarTurno() {
+    this.turno++;
   }
 
   public entregarCartaJugadorActual(): void {
@@ -97,7 +98,7 @@ export class Juego {
     return {
       turno: this.turno,
       ronda: this.ronda,
-      nombreJugadorActivo: this.getJugadorActivo().nombre,
+      nombreJugadorActivo: this.getJugadorActivo()?.nombre,
       jugadores: this.jugadores,
       jugadoresGanadores: this.jugadoresGanadores,
       manoGrupier: this.manoGrupier,

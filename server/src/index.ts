@@ -6,7 +6,7 @@ import { SocketId } from "socket.io-adapter";
 const io = new Server({ cors: { origin: "*" } });
 const game = new Juego();
 let sockets = []; // id de conexiones
-const confirmed = [];
+let confirmed = [];
 let socketActual = 0; // turno de la conexion
 const mapSocketJugadores = new Map<SocketId, string>();
 
@@ -24,8 +24,6 @@ io.on("connection", (socket) => {
 
   socket.on("confirmar", () => {
     console.log(socket.id);
-    console.log("cac");
-
     confirmed[sockets.indexOf(socket.id)] = true;
 
     for (const conf of confirmed) {
@@ -45,7 +43,7 @@ io.on("connection", (socket) => {
 
   socket.on("pedir", () => {
     if (!isMyTurn()) return;
-    let acaboRonda = false;
+
     if (game.puedeSeguirPidiendoJA()) {
       console.log(`${socket.id} pidio en la ronda ${game.ronda}`);
 
@@ -56,18 +54,26 @@ io.on("connection", (socket) => {
         game.getJugadorActivo().mano
       );
       console.log(`puntaje despues de pedir: ${game.getPuntajeJA()}`);
-      if (!game.puedeSeguirPidiendoJA()) {
-        const acaboRonda = game.avanzarTurno();
-      }
 
-      if (acaboRonda) {
-        io.emit("finronda");
+
+      const seAcaboLaRonda = game.turno+1 == game.jugadores.length;
+
+      if (seAcaboLaRonda && !game.puedeSeguirPidiendoJA()) {
+        game.terminarRonda();
+
+        io.emit("finronda", game.obtenerEstadoJuego());
+        game.avanzarRonda();
+
+        confirmed = []
+      }
+      else if ( !game.puedeSeguirPidiendoJA()) {
+        io.emit("gamestate", game.obtenerEstadoJuego());console.log(game.obtenerEstadoJuego());
+        game.avanzarTurno();
       }
     }
+    io.emit("gamestate", game.obtenerEstadoJuego());console.log(game.obtenerEstadoJuego());
 
-    //emite a todos los socket el estado del juego
-    io.emit("gamestate", game.obtenerEstadoJuego());
-    console.log(game.obtenerEstadoJuego());
+
   });
 
   socket.on("bajarse", () => {
@@ -79,12 +85,19 @@ io.on("connection", (socket) => {
     }
     console.log(`socket ${socket.id} se bajo de la ronda ${game.ronda}`);
 
-    let acaboRonda = game.avanzarTurno();
 
-    io.emit("gamestate", game.obtenerEstadoJuego());
-    console.log(game.obtenerEstadoJuego());
-    if (acaboRonda) {
-      io.emit("finronda");
+    const seAcaboLaRonda = game.turno+1 == game.jugadores.length
+
+    if (seAcaboLaRonda) {
+      game.terminarRonda();
+      io.emit("finronda", game.obtenerEstadoJuego());
+      game.avanzarRonda();
+      confirmed = []
+      io.emit("gamestate", game.obtenerEstadoJuego());console.log(game.obtenerEstadoJuego());
+    }
+    else  {
+      game.avanzarTurno();
+      io.emit("gamestate", game.obtenerEstadoJuego());console.log(game.obtenerEstadoJuego());
     }
   });
 

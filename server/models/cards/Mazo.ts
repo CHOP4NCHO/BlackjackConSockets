@@ -2,7 +2,8 @@ import Carta, {Pinta, Valor} from "./Carta";
 
 
 export class Mazo {
-    public cartas: Carta[] = [
+    public cartas: Carta[] = []
+    public _cartas: Carta[] = [
         new Carta(Pinta.PICA, Valor.AS),
         new Carta(Pinta.PICA, Valor.DOS),
         new Carta(Pinta.PICA, Valor.TRES),
@@ -59,6 +60,20 @@ export class Mazo {
         new Carta(Pinta.DIAMANTE, Valor.QUINA),
         new Carta(Pinta.DIAMANTE, Valor.KAISER)
     ];
+
+    constructor() {
+        this.cartas.push(...this._cartas)
+        this.cartas.push(...this._cartas)
+        this.cartas.push(...this._cartas)
+        this.cartas.push(...this._cartas)
+        this.cartas.push(...this._cartas)
+        this.cartas.push(...this._cartas)
+        this.cartas.push(...this._cartas)
+        this.cartas.push(...this._cartas)
+
+
+    }
+
 
     public revolver(): void {
         for (let i = this.cartas.length - 1; i > 0; i--) {

@@ -146,21 +146,17 @@ export default function Game() {
       setGameState(data);
     });
 
-    socket.on("finronda", () => {
+    socket.on("finronda", (data: EstadoJuego) => {
+
       if (
-        gameState.jugadoresGanadores?.find((jugador) => {
-          jugador.nombre == socket.id;
+        data.jugadoresGanadores?.find((jugador) => {
+          return jugador.nombre == (socket.id);
         })
       ) {
-        alert("GANASTE PAPU");
+        alert(`GANASTE PAPU, puntaje crupier: ${data?.puntajeGrupier} puntajes ${data?.jugadores.forEach((j)=>{return j.puntaje})}`);
       } else {
-        alert("PERDISTE PIPIPI");
+        alert(`PERDISTE CHAVO PIPIPIPI, puntaje crupier: ${data?.puntajeGrupier}`);
       }
-      alert(
-        gameState.jugadoresGanadores?.find((j) => {
-          j.nombre == socket.id;
-        })
-      );
     });
   }, [socket]);
 
