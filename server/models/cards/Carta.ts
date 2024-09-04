@@ -1,8 +1,9 @@
 export enum Pinta {
-  PICA,
-  CORAZON,
-  TREBOL,
-  DIAMANTE,
+  PICA = "S",
+  CORAZON = "H",
+  TREBOL = "C",
+  DIAMANTE = "D",
+  REVERSO = "B",
 }
 export enum Valor {
   AS = 11,
@@ -24,8 +25,10 @@ export default class Carta {
   public pinta: Pinta;
   public valor: Valor;
   public visible: boolean = true;
+  public valorNombre: string;
 
-  constructor(pinta: Pinta, valor: Valor) {
+  constructor(pinta: Pinta, valor: Valor, valorNombre: string) {
+    this.valorNombre = valorNombre;
     this.pinta = pinta;
     this.valor = valor;
   }

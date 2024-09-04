@@ -23,7 +23,7 @@ export enum CardValue {
   KAISER = "K",
 }
 
-export default class Carta {
+export default class DisplayCard {
   public pinta: CardSuite;
   public valor: CardValue;
   public visible: Boolean = false;
@@ -34,5 +34,15 @@ export default class Carta {
   }
 }
 
-export const REVERSO_NEGRO: Carta = new Carta(CardSuite.REVERSO, CardValue.UNO);
-export const REVERSO_ROJO: Carta = new Carta(CardSuite.REVERSO, CardValue.DOS);
+export const REVERSO_NEGRO: DisplayCard = new DisplayCard(
+  CardSuite.REVERSO,
+  CardValue.UNO
+);
+export const REVERSO_ROJO: DisplayCard = new DisplayCard(
+  CardSuite.REVERSO,
+  CardValue.DOS
+);
+export const PICA: DisplayCard = new DisplayCard(
+  CardSuite.CORAZON,
+  CardValue.AS
+);

@@ -1,20 +1,18 @@
 "use client";
 
 import Image from "next/image";
-import Carta, { REVERSO_ROJO } from "@/models/cards/Carta";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { EstadoJuego } from "@/models/game/Juego";
 import { Jugador } from "@/models/game/Jugador";
 import { io, Socket } from "socket.io-client";
-//import { socket } from "@/socket";
+import DisplayCard, { CardSuite, CardValue } from "@/models/cards/Carta";
 
-// <Card number=CardNumbers.ACE suite=CardSuite.SPADES heigt="200"></Card>
 interface ICard {
-  card: Carta;
+  card: DisplayCard;
   height: number;
 }
 
-const Card: React.FC<ICard> = ({ card = REVERSO_ROJO, height = 100 }) => {
+const Card: React.FC<ICard> = ({ card, height = 100 }) => {
   const width = (5 * height) / 7;
   const cardSrc = `/${card.valor}${card.pinta}.svg`;
 
@@ -33,25 +31,23 @@ const Card: React.FC<ICard> = ({ card = REVERSO_ROJO, height = 100 }) => {
   );
 };
 
-interface IDealer {
-  manoCroupier: Carta[];
-  puntajeCroupier: number;
-}
-
-function Dealer(dealer: IDealer) {
+function Dealer(gamestate: IEstadoJuego) {
   return (
     <div>
       <div className="bg-green-900 h-[30vh] p-2 flex flex-row justify-center  items-center">
-        <Card height={200}></Card>
-        <Card height={200}></Card>
-      </div>
-      <div className="bg-black h-fit flex justify p-2">
-        {dealer.manoCroupier?.map((carta) => (
-          <p style={{ color: "white" }}>
-            {carta.pinta} {carta.valor}
-          </p>
+        {gamestate.estadoJuego.manoGrupier?.map((carta) => (
+          <Card card={new DisplayCard(carta.pinta, carta.valor)} height={200} />
         ))}
-        <p style={{ color: "white" }}>Puntaje: {dealer.puntajeCroupier}</p>
+        <div>
+          {gamestate.estadoJuego.manoGrupier?.map((carta) => (
+            <p style={{ color: "white" }}>
+              {carta.pinta} {carta.valor}
+            </p>
+          ))}
+          <p style={{ color: "white" }}>
+            Puntaje: {gamestate.estadoJuego.puntajeGrupier}
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -76,9 +72,10 @@ function CardHolder(player: IJugador) {
         <div>
           <p style={{ color: "white" }}>Cartas</p>
           {player.jugador.mano.map((carta) => (
-            <p style={{ color: "white" }}>
-              {carta.pinta} {carta.valor}
-            </p>
+            <Card
+              card={new DisplayCard(carta.pinta, carta.valor)}
+              height={200}
+            />
           ))}
         </div>
       </div>
