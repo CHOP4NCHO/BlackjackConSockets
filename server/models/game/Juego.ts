@@ -57,11 +57,11 @@ export class Juego {
   public avanzarRonda() {
     this.turno = 0;
     this.ronda++;
-    this.jugadores.forEach( (j) =>  {
-      j.puntaje = 0
-      j.mano = []
-    })
-    this.manoGrupier = []
+    this.jugadores.forEach((j) => {
+      j.puntaje = 0;
+      j.mano = [];
+    });
+    this.manoGrupier = [];
     this.jugadoresGanadores = [];
     this.entregarManoInicial();
   }
@@ -75,14 +75,12 @@ export class Juego {
     this.jugadores.forEach((jugador) => {
       const puntajeJugador = this.calcularPuntaje(jugador.mano);
       if (
-        ((puntajeJugador > puntajeGrupier && puntajeJugador <= 21) ||
-        (puntajeGrupier > 21 && puntajeJugador <= 21))
+        (puntajeJugador > puntajeGrupier && puntajeJugador <= 21) ||
+        (puntajeGrupier > 21 && puntajeJugador <= 21)
       ) {
         this.jugadoresGanadores.push(jugador);
       }
     });
-
-
   }
 
   public avanzarTurno() {

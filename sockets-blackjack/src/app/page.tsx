@@ -14,7 +14,8 @@ interface ICard {
 
 const Card: React.FC<ICard> = ({ card, height = 100 }) => {
   const width = (5 * height) / 7;
-  const cardSrc = `/${card.valor}${card.pinta}.svg`;
+  if (card.valorNombre == "1") card.pinta = CardSuite.PICA;
+  const cardSrc = `/${card.valorNombre}${card.pinta}.svg`;
 
   return (
     <div
@@ -24,32 +25,43 @@ const Card: React.FC<ICard> = ({ card, height = 100 }) => {
         maxHeight: "100%",
         maxWidth: (height * 5) / 7,
       }}
-      className={`relative overflow-hidden`}
+      className={`overflow-hidden`}
     >
-      <Image src={cardSrc} alt="1" layout="fill" objectFit="scale-down"></Image>
+      <Image
+        src={cardSrc}
+        alt="1"
+        height={height}
+        width={width}
+        layout="intrinsic"
+        objectFit="scale-down"
+      ></Image>
     </div>
   );
 };
 
 function Dealer(gamestate: IEstadoJuego) {
   return (
-    <div>
-      <div className="bg-green-900 h-[30vh] p-2 flex flex-row justify-center  items-center">
-        {gamestate.estadoJuego.manoGrupier?.map((carta) => (
-          <Card card={new DisplayCard(carta.pinta, carta.valor)} height={200} />
-        ))}
-        <div>
-          {gamestate.estadoJuego.manoGrupier?.map((carta) => (
-            <p style={{ color: "white" }}>
-              {carta.pinta} {carta.valor}
-            </p>
+    <>
+      <div className="bg-green-900 h-auto p-2 flex flex-row justify-center items-center">
+        <div className="flex h-auto max-w-full gap-4 overflow-hidden">
+          {gamestate.estadoJuego.manoGrupier?.map((carta, i) => (
+            <Card
+              key={i}
+              card={new DisplayCard(carta.pinta, carta.valorNombre)}
+              height={200}
+            />
           ))}
-          <p style={{ color: "white" }}>
-            Puntaje: {gamestate.estadoJuego.puntajeGrupier}
-          </p>
         </div>
       </div>
-    </div>
+      <div className="bg-black h-fit flex justify-center p-2">
+        <p className="text-white">
+          Puntaje del croupier:{" "}
+          {!gamestate.estadoJuego.puntajeGrupier
+            ? 0
+            : gamestate.estadoJuego.puntajeGrupier}
+        </p>
+      </div>
+    </>
   );
 }
 
@@ -68,14 +80,15 @@ interface IJugador {
 function CardHolder(player: IJugador) {
   return (
     <div className="flex flex-col justify-center  text-center">
-      <div className="border-x-[5px] border-b-[5px] border-dashed border-white h-[250px] aspect-[6/7]">
-        <div>
-          <p style={{ color: "white" }}>Cartas</p>
-          {player.jugador.mano.map((carta) => (
-            <Card
-              card={new DisplayCard(carta.pinta, carta.valor)}
-              height={200}
-            />
+      <div className="first-letter:border-x-[5px] border-b-[5px] border-dashed border-white h-[250px] aspect-[6/7]">
+        <div className="relative">
+          {player.jugador.mano.map((carta, i) => (
+            <div key={i} className="absolute" style={{ left: i * 30 }}>
+              <Card
+                card={new DisplayCard(carta.pinta, carta.valorNombre)}
+                height={200}
+              />
+            </div>
           ))}
         </div>
       </div>
@@ -92,9 +105,9 @@ interface IEstadoJuego {
 }
 function Players(gamestate: IEstadoJuego) {
   return (
-    <div className="flex flex-row flex-grow justify-center items-end h-full w-full gap-14 py-10 min-h-[20vh] ">
-      {gamestate?.estadoJuego.jugadores?.map((jugador: Jugador) => (
-        <CardHolder jugador={jugador} />
+    <div className="flex flex-row flex-grow justify-center items-end h-full w-full gap-14 py-10 min-h-[20vh]">
+      {gamestate?.estadoJuego.jugadores?.map((jugador: Jugador, i) => (
+        <CardHolder key={i} jugador={jugador} />
       ))}
     </div>
   );
@@ -103,9 +116,16 @@ function Players(gamestate: IEstadoJuego) {
 interface IPlayButtons {
   socket: Socket;
   gameState: EstadoJuego;
+  isConfirmed;
+  setIsConfirmed;
 }
 
-const PlayButtons: React.FC<IPlayButtons> = ({ socket, gameState }) => {
+const PlayButtons: React.FC<IPlayButtons> = ({
+  socket,
+  gameState,
+  isConfirmed,
+  setIsConfirmed,
+}) => {
   function pedir() {
     if (gameState.nombreJugadorActivo == socket.id) {
       console.log("Tuturno");
@@ -121,28 +141,35 @@ const PlayButtons: React.FC<IPlayButtons> = ({ socket, gameState }) => {
   function confirmar() {
     console.log(socket.id);
     socket.emit("confirmar");
+    setIsConfirmed(true);
   }
 
   return (
     <div className="flex flex-row justify-center items-end w-full gap-14 p-5 text-lg">
-      <button
-        className="bg-white border-2 flex-1 border-black py-3 rounded-xl"
-        onClick={confirmar}
-      >
-        Confirmar
-      </button>
-      <button
-        className="bg-white border-2 flex-1 border-black py-3 rounded-xl"
-        onClick={pedir}
-      >
-        Pedir Carta
-      </button>
-      <button
-        className="bg-white border-2 flex-1 border-black py-3 rounded-xl"
-        onClick={bajarse}
-      >
-        Bajarse
-      </button>
+      {isConfirmed ? (
+        <>
+          <button
+            className="bg-white border-2 flex-1 border-black py-3 rounded-xl"
+            onClick={bajarse}
+          >
+            Bajarse
+          </button>
+
+          <button
+            className="bg-white border-2 flex-1 border-black py-3 rounded-xl"
+            onClick={pedir}
+          >
+            Pedir Carta
+          </button>
+        </>
+      ) : (
+        <button
+          className="bg-white border-2 flex-1 border-black py-3 rounded-xl"
+          onClick={confirmar}
+        >
+          Confirmar
+        </button>
+      )}
     </div>
   );
 };
@@ -153,6 +180,7 @@ function Connect({ socket, setSocket, serverIp, setServerIp }) {
       console.log("already connected");
       return;
     }
+    if (!serverIp) setServerIp("ws://localhost:4567");
     setSocket(io(serverIp, { reconnection: false }));
     console.log(socket.id);
   }
@@ -181,6 +209,7 @@ export default function Game() {
   const [gameState, setGameState] = useState({} as EstadoJuego);
   const [serverIp, setServerIp] = useState("");
   const [socket, setSocket] = useState<Socket>(io({ reconnection: false }));
+  const [isConfirmed, setIsConfirmed] = useState(false);
 
   useEffect(() => {
     socket.on("gamestate", (data: EstadoJuego) => {
@@ -189,6 +218,7 @@ export default function Game() {
 
     socket.on("finronda", (data: EstadoJuego) => {
       setGameState(data);
+      setIsConfirmed(false);
       checkearGanadores(data);
     });
 
@@ -216,10 +246,7 @@ export default function Game() {
   return (
     <main className="bg-black h-screen w-screen p-5 flex flex-col">
       <Board>
-        <Dealer
-          manoCroupier={gameState.manoGrupier}
-          puntajeCroupier={gameState.puntajeGrupier}
-        />
+        <Dealer estadoJuego={gameState} />
         <Connect
           socket={socket}
           setSocket={setSocket}
@@ -227,7 +254,12 @@ export default function Game() {
           setServerIp={setServerIp}
         ></Connect>
         <Players estadoJuego={gameState}></Players>
-        <PlayButtons socket={socket} gameState={gameState}></PlayButtons>
+        <PlayButtons
+          socket={socket}
+          gameState={gameState}
+          isConfirmed={isConfirmed}
+          setIsConfirmed={setIsConfirmed}
+        ></PlayButtons>
       </Board>
     </main>
   );

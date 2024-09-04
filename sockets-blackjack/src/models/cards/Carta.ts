@@ -25,12 +25,12 @@ export enum CardValue {
 
 export default class DisplayCard {
   public pinta: CardSuite;
-  public valor: CardValue;
+  public valorNombre: CardValue;
   public visible: Boolean = false;
 
   constructor(pinta: CardSuite, valor: CardValue) {
     this.pinta = pinta;
-    this.valor = valor;
+    this.valorNombre = valor;
   }
 }
 

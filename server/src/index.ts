@@ -2,6 +2,7 @@ import { Server } from "socket.io";
 import { Juego } from "../models/game/Juego";
 import { Jugador } from "../models/game/Jugador";
 import { SocketId } from "socket.io-adapter";
+import { inspect } from "util";
 
 const io = new Server({ cors: { origin: "*" } });
 const game = new Juego();
@@ -34,10 +35,14 @@ io.on("connection", (socket) => {
     }
 
     console.log("se esta entregando la mano inicial...");
-    game.entregarManoInicial();
+    game.avanzarRonda();
     console.log("se entrego la mano inicial");
-    console.log(game.obtenerEstadoJuego());
-
+    //console.log(inspect(game.obtenerEstadoJuego(), false, null, true));
+    console.info(confirmed);
+    for (let i = 0; i < confirmed.length; i++) {
+      confirmed[i] = false;
+    }
+    console.info(confirmed);
     io.emit("gamestate", game.obtenerEstadoJuego());
   });
 
@@ -55,25 +60,23 @@ io.on("connection", (socket) => {
       );
       console.log(`puntaje despues de pedir: ${game.getPuntajeJA()}`);
 
-
-      const seAcaboLaRonda = game.turno+1 == game.jugadores.length;
+      const seAcaboLaRonda = game.turno + 1 == game.jugadores.length;
 
       if (seAcaboLaRonda && !game.puedeSeguirPidiendoJA()) {
         game.terminarRonda();
 
         io.emit("finronda", game.obtenerEstadoJuego());
-        game.avanzarRonda();
+        // game.avanzarRonda();
 
-        confirmed = []
-      }
-      else if ( !game.puedeSeguirPidiendoJA()) {
-        io.emit("gamestate", game.obtenerEstadoJuego());console.log(game.obtenerEstadoJuego());
+        // confirmed = [];
+      } else if (!game.puedeSeguirPidiendoJA()) {
+        io.emit("gamestate", game.obtenerEstadoJuego());
+        console.log(inspect(game.obtenerEstadoJuego(), false, null, true));
         game.avanzarTurno();
       }
     }
-    io.emit("gamestate", game.obtenerEstadoJuego());console.log(game.obtenerEstadoJuego());
-
-
+    // io.emit("gamestate", game.obtenerEstadoJuego());
+    console.log(inspect(game.obtenerEstadoJuego(), false, null, true));
   });
 
   socket.on("bajarse", () => {
@@ -85,19 +88,19 @@ io.on("connection", (socket) => {
     }
     console.log(`socket ${socket.id} se bajo de la ronda ${game.ronda}`);
 
-
-    const seAcaboLaRonda = game.turno+1 == game.jugadores.length
+    const seAcaboLaRonda = game.turno + 1 == game.jugadores.length;
 
     if (seAcaboLaRonda) {
       game.terminarRonda();
       io.emit("finronda", game.obtenerEstadoJuego());
-      game.avanzarRonda();
-      confirmed = []
-      io.emit("gamestate", game.obtenerEstadoJuego());console.log(game.obtenerEstadoJuego());
-    }
-    else  {
+      //game.avanzarRonda();
+      //confirmed = [];
+      //io.emit("gamestate", game.obtenerEstadoJuego());
+      console.log(inspect(game.obtenerEstadoJuego(), false, null, true));
+    } else {
       game.avanzarTurno();
-      io.emit("gamestate", game.obtenerEstadoJuego());console.log(game.obtenerEstadoJuego());
+      io.emit("gamestate", game.obtenerEstadoJuego());
+      console.log(inspect(game.obtenerEstadoJuego(), false, null, true));
     }
   });
 
