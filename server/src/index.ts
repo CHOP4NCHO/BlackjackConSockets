@@ -1,28 +1,29 @@
-import {Server, Socket} from "socket.io";
+import { Server, Socket } from "socket.io";
 import { Juego } from "../models/game/Juego";
 import { Jugador } from "../models/game/Jugador";
 import { SocketId } from "socket.io-adapter";
 import { inspect } from "util";
-import {createServer} from "node:http";
+import { createServer } from "node:http";
 
-
-const http = createServer()
-const io = new Server(http, {  cors: { origin: "*" } });
-const game = new Juego();
+const http = createServer();
+const io = new Server(http, { cors: { origin: "*" } });
+const juego = new Juego();
 let sockets = []; // id de conexiones
-let confirmed = [];
+let confirmados = [];
 let socketActual = 0; // turno de la conexion
 const mapSocketJugadores = new Map<SocketId, string>();
-const port = 4567
-http.listen(port, "192.168.0.12", () => {
-  console.log(`Escuchando en ${port}`)
-})
+const port = 4567;
+const ip = "localhost";
+
+http.listen(port, ip, () => {
+  console.log(`Escuchando en ${port}`);
+});
 
 io.on("connection", (socket) => {
   onConnect();
 
   function isMyTurn() {
-    if (socket.id != game.getJugadorActivo().nombre) {
+    if (socket.id != juego.getJugadorActivo().nombre) {
       console.error("error: solicitud fuera de turno");
       socket.emit("error", "no es tu turno");
       return false;
@@ -30,89 +31,94 @@ io.on("connection", (socket) => {
     return true;
   }
 
-  socket.on("confirmar", () => {
-    console.log(socket.id);
-    confirmed[sockets.indexOf(socket.id)] = true;
-
-    for (const conf of confirmed) {
+  function hanConfirmadoTodos(): boolean {
+    for (const conf of confirmados) {
       if (!conf) {
-        console.log("faltan jugadores por confirmar");
-        return;
+        console.warn(
+          `Faltan jugadores por confirmar 
+          Jugadores confirmados ${confirmados}`
+        );
+        return false;
       }
     }
+    return true;
+  }
 
-    console.log("se esta entregando la mano inicial...");
-    game.avanzarRonda();
-    console.log("se entrego la mano inicial");
-    //console.log(inspect(game.obtenerEstadoJuego(), false, null, true));
-    console.info(confirmed);
-    for (let i = 0; i < confirmed.length; i++) {
-      confirmed[i] = false;
+  function resetearConfirmados() {
+    for (let i = 0; i < confirmados.length; i++) {
+      confirmados[i] = false;
     }
-    console.info(confirmed);
-    io.emit("gamestate", game.obtenerEstadoJuego());
+  }
+
+  socket.on("confirmar", () => {
+    console.info(`${socket.id} confirmó la ronda`);
+    confirmados[sockets.indexOf(socket.id)] = true;
+
+    if (!hanConfirmadoTodos()) return;
+
+    juego.avanzarRonda();
+    console.info(`Se entregó la mano inicial`);
+
+    resetearConfirmados();
+
+    io.emit("gamestate", juego.obtenerEstadoJuego());
   });
 
   socket.on("pedir", () => {
     if (!isMyTurn()) return;
 
-    if (game.puedeSeguirPidiendoJA()) {
-      console.log(`${socket.id} pidio en la ronda ${game.ronda}`);
-
-      //si tiene puntaje para jugar pide carta
-      console.log(`puntaje actual de ${socket.id}: ${game.getPuntajeJA()}`);
-      game.entregarCartaJugadorActual();
-      game.getJugadorActivo().puntaje = game.calcularPuntaje(
-        game.getJugadorActivo().mano
+    //si tiene puntaje para jugar pide carta
+    if (juego.puedeSeguirPidiendoJA()) {
+      console.info(
+        `${socket.id} pidió en la ronda ${juego.ronda} 
+        Puntaje antes de pedir: ${juego.getPuntajeJA()}`
       );
-      console.log(`puntaje despues de pedir: ${game.getPuntajeJA()}`);
 
-      const seAcaboLaRonda = game.turno + 1 == game.jugadores.length;
-      io.emit("gamestate", game.obtenerEstadoJuego());
-      if (seAcaboLaRonda && !game.puedeSeguirPidiendoJA()) {
-        game.terminarRonda();
+      juego.entregarCartaJugadorActual();
+      juego.getJugadorActivo().puntaje = juego.calcularPuntaje(
+        juego.getJugadorActivo().mano
+      );
 
-        io.emit("finronda", game.obtenerEstadoJuego());
-        // game.avanzarRonda();
+      console.info(`Puntaje después de pedir: ${juego.getPuntajeJA()}`);
 
-        // confirmed = [];
-      } else if (!game.puedeSeguirPidiendoJA()) {
-        io.emit("gamestate", game.obtenerEstadoJuego());
-        console.log(inspect(game.obtenerEstadoJuego(), false, null, true));
-        game.avanzarTurno();
+      const seAcaboLaRonda = juego.turno + 1 == juego.jugadores.length;
+
+      io.emit("gamestate", juego.obtenerEstadoJuego());
+
+      if (seAcaboLaRonda && !juego.puedeSeguirPidiendoJA()) {
+        juego.terminarRonda();
+        io.emit("finronda", juego.obtenerEstadoJuego());
+      } else if (!juego.puedeSeguirPidiendoJA()) {
+        juego.avanzarTurno();
       }
     }
-    // io.emit("gamestate", game.obtenerEstadoJuego());
-    console.log(inspect(game.obtenerEstadoJuego(), false, null, true));
+    console.log(inspect(juego.obtenerEstadoJuego(), false, null, true));
   });
 
   socket.on("bajarse", () => {
     if (!isMyTurn()) return;
 
-    if (!game.puedeSeguirPidiendoJA()) {
-      console.log("!!!NO PUEDES HACER ESO SEÑOR SOCKET,", socket.id);
-      return;
-    }
-    console.log(`socket ${socket.id} se bajo de la ronda ${game.ronda}`);
+    console.info(
+      `${socket.id} se bajó de la ronda ${juego.ronda}
+      Puntaje al bajarse: ${juego.getPuntajeJA()}`
+    );
 
-    const seAcaboLaRonda = game.turno + 1 == game.jugadores.length;
-    io.emit("gamestate", game.obtenerEstadoJuego());
+    const seAcaboLaRonda = juego.turno + 1 == juego.jugadores.length;
+    io.emit("gamestate", juego.obtenerEstadoJuego());
+
     if (seAcaboLaRonda) {
-      game.terminarRonda();
-      io.emit("finronda", game.obtenerEstadoJuego());
-      //game.avanzarRonda();
-      //confirmed = [];
-      //io.emit("gamestate", game.obtenerEstadoJuego());
-      console.log(inspect(game.obtenerEstadoJuego(), false, null, true));
+      juego.terminarRonda();
+      io.emit("finronda", juego.obtenerEstadoJuego());
+      console.log(inspect(juego.obtenerEstadoJuego(), false, null, true));
     } else {
-      game.avanzarTurno();
-      io.emit("gamestate", game.obtenerEstadoJuego());
-      console.log(inspect(game.obtenerEstadoJuego(), false, null, true));
+      juego.avanzarTurno();
+      io.emit("gamestate", juego.obtenerEstadoJuego());
+      console.log(inspect(juego.obtenerEstadoJuego(), false, null, true));
     }
   });
 
   socket.on("disconnect", () => {
-    game.jugadores = game.jugadores.filter((j: Jugador) => {
+    juego.jugadores = juego.jugadores.filter((j: Jugador) => {
       return j.nombre != mapSocketJugadores.get(socket.id);
     });
     sockets = sockets.filter((s) => {
@@ -121,13 +127,10 @@ io.on("connection", (socket) => {
   });
 
   function onConnect() {
-    console.log("SE HA CONECTADO ALGUIEN");
+    console.warn(`Se ha conectado ${socket.id}`);
     sockets.push(socket.id);
-    game.jugadores.push({ nombre: socket.id, mano: [] } as Jugador);
-    confirmed.push(false);
+    juego.jugadores.push({ nombre: socket.id, mano: [] } as Jugador);
+    confirmados.push(false);
     mapSocketJugadores.set(socket.id, socket.id);
   }
 });
-
-
-
