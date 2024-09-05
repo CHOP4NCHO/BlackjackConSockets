@@ -268,14 +268,28 @@ export default function Game() {
   return (
     <main className="bg-black h-screen w-screen p-5 flex flex-col">
       <Board>
+        <h1
+          className="flex justify-center"
+          style={{
+            fontFamily: "Comic Neue",
+            fontWeight: 700,
+            color: "white",
+            fontSize: 60,
+          }}
+        >
+          🤠 💸♠️BLACKJACK♠️💸 🤠
+        </h1>
         <ToastContainer />
         <Dealer estadoJuego={gameState} />
-        <Connect
-          socket={socket}
-          setSocket={setSocket}
-          serverIp={serverIp}
-          setServerIp={setServerIp}
-        ></Connect>
+
+        {!socket.connected && (
+          <Connect
+            socket={socket}
+            setSocket={setSocket}
+            serverIp={serverIp}
+            setServerIp={setServerIp}
+          ></Connect>
+        )}
         <Players estadoJuego={gameState}></Players>
         <PlayButtons
           socket={socket}
