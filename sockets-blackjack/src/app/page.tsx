@@ -1,17 +1,19 @@
 "use client";
 
 import Image from "next/image";
-import { MutableRefObject, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { EstadoJuego } from "@/models/game/Juego";
 import { Jugador } from "@/models/game/Jugador";
 import { io, Socket } from "socket.io-client";
-import DisplayCard, { CardSuite, CardValue } from "@/models/cards/Carta";
+import DisplayCard, { CardSuite } from "@/models/cards/Carta";
+
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 interface ICard {
   card: DisplayCard;
   height: number;
 }
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
 const Card: React.FC<ICard> = ({ card, height = 100 }) => {
   const width = (5 * height) / 7;
@@ -76,14 +78,17 @@ function Board({ children }) {
 
 interface IJugador {
   jugador: Jugador;
+  gamestate: EstadoJuego;
 }
 
-function CardHolder(player: IJugador) {
+const CardHolder: React.FC<IJugador> = ({ jugador, gamestate }) => {
   return (
     <div className="flex flex-col justify-center  text-center">
-      <div className="first-letter:border-x-[5px] border-b-[5px] border-dashed border-white h-[250px] aspect-[6/7]">
+      <div
+        className={`first-letter:border-x-[5px] border-b-[5px] border-dashed border-white h-[250px] aspect-[6/7]`}
+      >
         <div className="relative">
-          {player.jugador.mano.map((carta, i) => (
+          {jugador.mano.map((carta, i) => (
             <div key={i} className="absolute" style={{ left: i * 30 }}>
               <Card
                 card={new DisplayCard(carta.pinta, carta.valorNombre)}
@@ -93,22 +98,39 @@ function CardHolder(player: IJugador) {
           ))}
         </div>
       </div>
-      <p className="py-2 font-black bg-green-100 mt-1">
-        Jugador {player.jugador.nombre}
+      <p
+        style={{
+          backgroundColor:
+            gamestate.nombreJugadorActivo == jugador.nombre
+              ? "orange"
+              : "green",
+        }}
+        className={`p-2 font-black mt-1 border-2 ${
+          gamestate.nombreJugadorActivo == jugador.nombre
+            ? "bg-orange-500 border-white"
+            : "bg-green-200"
+        } `}
+      >
+        Jugador {jugador.nombre}
       </p>
-      <p style={{ color: "white" }}>Puntaje {player.jugador.puntaje}</p>
+      <p style={{ color: "white" }}>Puntaje {jugador.puntaje}</p>
     </div>
   );
-}
+};
 
 interface IEstadoJuego {
   estadoJuego: EstadoJuego;
 }
+
 function Players(gamestate: IEstadoJuego) {
   return (
     <div className="flex flex-row flex-grow justify-center items-end h-full w-full gap-14 py-10 min-h-[20vh]">
       {gamestate?.estadoJuego.jugadores?.map((jugador: Jugador, i) => (
-        <CardHolder key={i} jugador={jugador} />
+        <CardHolder
+          key={i}
+          jugador={jugador}
+          gamestate={gamestate.estadoJuego}
+        />
       ))}
     </div>
   );
@@ -213,11 +235,26 @@ export default function Game() {
   const [serverIp, setServerIp] = useState("");
   const [socket, setSocket] = useState<Socket>(io({ reconnection: false }));
   const [isConfirmed, setIsConfirmed] = useState(false);
-  const [isSmallExploding, setIsSmallExploding] = useState(false);
 
   useEffect(() => {
     socket.on("gamestate", (data: EstadoJuego) => {
       setGameState(data);
+      if (data.nombreJugadorActivo == socket.id) {
+        const notifyTurn = () => {
+          toast("Es tu turno", {
+            position: "top-center",
+            autoClose: 2000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            style: { backgroundColor: "yellow", color: "black" },
+            theme: "colored",
+          });
+        };
+        notifyTurn();
+      }
     });
 
     socket.on("finronda", (data: EstadoJuego) => {
