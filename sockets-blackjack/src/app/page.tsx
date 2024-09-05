@@ -1,11 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import { MutableRefObject, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { EstadoJuego } from "@/models/game/Juego";
 import { Jugador } from "@/models/game/Jugador";
 import { io, Socket } from "socket.io-client";
-import DisplayCard, { CardSuite, CardValue } from "@/models/cards/Carta";
+import DisplayCard, { CardSuite } from "@/models/cards/Carta";
 
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -121,6 +121,7 @@ const CardHolder: React.FC<IJugador> = ({ jugador, gamestate }) => {
 interface IEstadoJuego {
   estadoJuego: EstadoJuego;
 }
+
 function Players(gamestate: IEstadoJuego) {
   return (
     <div className="flex flex-row flex-grow justify-center items-end h-full w-full gap-14 py-10 min-h-[20vh]">
@@ -234,7 +235,6 @@ export default function Game() {
   const [serverIp, setServerIp] = useState("");
   const [socket, setSocket] = useState<Socket>(io({ reconnection: false }));
   const [isConfirmed, setIsConfirmed] = useState(false);
-  const [isSmallExploding, setIsSmallExploding] = useState(false);
 
   useEffect(() => {
     socket.on("gamestate", (data: EstadoJuego) => {
