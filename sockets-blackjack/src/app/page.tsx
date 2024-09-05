@@ -6,11 +6,12 @@ import { EstadoJuego } from "@/models/game/Juego";
 import { Jugador } from "@/models/game/Jugador";
 import { io, Socket } from "socket.io-client";
 import DisplayCard, { CardSuite, CardValue } from "@/models/cards/Carta";
-
 interface ICard {
   card: DisplayCard;
   height: number;
 }
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Card: React.FC<ICard> = ({ card, height = 100 }) => {
   const width = (5 * height) / 7;
@@ -25,7 +26,7 @@ const Card: React.FC<ICard> = ({ card, height = 100 }) => {
         maxHeight: "100%",
         maxWidth: (height * 5) / 7,
       }}
-      className={`overflow-hidden`}
+      className="animate-slide-in-top hover:animate-slide-out-top"
     >
       <Image
         src={cardSrc}
@@ -126,6 +127,7 @@ const PlayButtons: React.FC<IPlayButtons> = ({
   isConfirmed,
   setIsConfirmed,
 }) => {
+  const [continua, setContinua] = useState(false);
   function pedir() {
     if (gameState.nombreJugadorActivo == socket.id) {
       console.log("Tuturno");
@@ -139,6 +141,7 @@ const PlayButtons: React.FC<IPlayButtons> = ({
     console.log("Me baje ", socket.id);
   }
   function confirmar() {
+    setContinua(true);
     console.log(socket.id);
     socket.emit("confirmar");
     setIsConfirmed(true);
@@ -167,7 +170,7 @@ const PlayButtons: React.FC<IPlayButtons> = ({
           className="bg-white border-2 flex-1 border-black py-3 rounded-xl"
           onClick={confirmar}
         >
-          Confirmar
+          {continua ? "Reiniciar" : "Confirmar"}
         </button>
       )}
     </div>
@@ -210,6 +213,7 @@ export default function Game() {
   const [serverIp, setServerIp] = useState("");
   const [socket, setSocket] = useState<Socket>(io({ reconnection: false }));
   const [isConfirmed, setIsConfirmed] = useState(false);
+  const [isSmallExploding, setIsSmallExploding] = useState(false);
 
   useEffect(() => {
     socket.on("gamestate", (data: EstadoJuego) => {
@@ -228,17 +232,35 @@ export default function Game() {
           return jugador.nombre == socket.id;
         })
       ) {
-        alert(
-          `GANASTE PAPU, puntaje crupier: ${
-            data?.puntajeGrupier
-          } puntajes ${data?.jugadores.forEach((j) => {
-            return j.puntaje;
-          })}`
-        );
+        const notifySucces = () => {
+          toast("Eres el ganador!", {
+            position: "top-center",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            style: { backgroundColor: "#4fbf26", color: "white" },
+            theme: "colored",
+          });
+        };
+        notifySucces();
       } else {
-        alert(
-          `PERDISTE CHAVO PIPIPIPI, puntaje crupier: ${data?.puntajeGrupier}`
-        );
+        const perdiste = () => {
+          toast("Perdiste", {
+            position: "top-center",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            style: { backgroundColor: "red", color: "white" },
+            theme: "colored",
+          });
+        };
+        perdiste();
       }
     }
   }, [socket]);
@@ -246,6 +268,7 @@ export default function Game() {
   return (
     <main className="bg-black h-screen w-screen p-5 flex flex-col">
       <Board>
+        <ToastContainer />
         <Dealer estadoJuego={gameState} />
         <Connect
           socket={socket}
