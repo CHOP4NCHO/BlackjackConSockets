@@ -7,16 +7,17 @@ import { createServer } from "node:http";
 
 const http = createServer();
 const io = new Server(http, { cors: { origin: "*" } });
-const juego = new Juego();
+
+const juego = new Juego(); // Objeto gestor del juego
 let sockets = []; // id de conexiones
-let confirmados = [];
-let socketActual = 0; // turno de la conexion
+let confirmados = []; // jugadores confirmados
 const mapSocketJugadores = new Map<SocketId, string>();
+
 const port = 4567;
-const ip = "localhost";
+const ip = "10.144.102.164";
 
 http.listen(port, ip, () => {
-  console.log(`Escuchando en ${port}`);
+  console.log(`Escuchando en http://${ip}:${port}`);
 });
 
 io.on("connection", (socket) => {
@@ -90,6 +91,7 @@ io.on("connection", (socket) => {
         io.emit("finronda", juego.obtenerEstadoJuego());
       } else if (!juego.puedeSeguirPidiendoJA()) {
         juego.avanzarTurno();
+        io.emit("gamestate", juego.obtenerEstadoJuego());
       }
     }
     console.log(inspect(juego.obtenerEstadoJuego(), false, null, true));
@@ -104,7 +106,7 @@ io.on("connection", (socket) => {
     );
 
     const seAcaboLaRonda = juego.turno + 1 == juego.jugadores.length;
-    io.emit("gamestate", juego.obtenerEstadoJuego());
+    //io.emit("gamestate", juego.obtenerEstadoJuego());
 
     if (seAcaboLaRonda) {
       juego.terminarRonda();
